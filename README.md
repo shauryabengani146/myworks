@@ -476,6 +476,142 @@ footer {
   to { transform: translateX(-50%); }
 }
 
+/* ── CLICK TRANSITION OVERLAY ── */
+#transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* The ink blob that expands from click point */
+#ink-blob {
+  position: fixed;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 99998;
+  transition: none;
+}
+#ink-blob.expanding {
+  animation: inkExpand 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+#ink-blob.collapsing {
+  animation: inkCollapse 0.45s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+
+/* The launch label shown mid-transition */
+#launch-label {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100000;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  opacity: 0;
+}
+#launch-label.visible {
+  animation: labelReveal 0.4s 0.28s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+
+#launch-emoji {
+  font-size: 3.5rem;
+  filter: drop-shadow(0 0 24px rgba(200,69,26,0.6));
+  animation: none;
+}
+#launch-label.visible #launch-emoji {
+  animation: emojiPop 0.5s 0.32s cubic-bezier(0.34,1.8,0.64,1) both;
+}
+
+#launch-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.2rem, 7vw, 5rem);
+  letter-spacing: 3px;
+  color: var(--paper);
+  line-height: 1;
+}
+
+#launch-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Loading dots */
+#launch-dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+#launch-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: dotPulse 0.6s ease-in-out infinite;
+}
+#launch-dots span:nth-child(2) { animation-delay: 0.15s; }
+#launch-dots span:nth-child(3) { animation-delay: 0.30s; }
+
+/* Ripple rings from click point */
+.ripple-ring {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 99997;
+  animation: rippleOut 0.7s ease-out forwards;
+}
+
+@keyframes inkExpand {
+  0%   { width: 0; height: 0; opacity: 1; }
+  100% { width: 300vmax; height: 300vmax; opacity: 1; }
+}
+@keyframes inkCollapse {
+  0%   { width: 300vmax; height: 300vmax; opacity: 1; }
+  100% { width: 0; height: 0; opacity: 0; }
+}
+@keyframes labelReveal {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 20px)); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+@keyframes emojiPop {
+  0%   { transform: scale(0) rotate(-20deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scaleY(1); opacity: 0.4; }
+  50%       { transform: scaleY(1.8); opacity: 1; }
+}
+@keyframes rippleOut {
+  0%   { width: 10px; height: 10px; opacity: 0.8; }
+  100% { width: 200px; height: 200px; opacity: 0; }
+}
+
+/* Card click flash */
+.card.clicked {
+  animation: cardFlash 0.35s ease forwards !important;
+}
+@keyframes cardFlash {
+  0%   { transform: translateY(-4px) scale(1); }
+  30%  { transform: translateY(-4px) scale(0.97); box-shadow: 0 0 0 3px var(--accent); }
+  70%  { transform: translateY(-4px) scale(1.01); }
+  100% { transform: translateY(-4px) scale(1); }
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   header, .hero, .works-section { padding-left: 20px; padding-right: 20px; }
@@ -492,6 +628,15 @@ footer {
 
 <div id="cursor"></div>
 <div id="cursorRing"></div>
+
+<!-- TRANSITION OVERLAY -->
+<div id="ink-blob"></div>
+<div id="launch-label">
+  <div id="launch-emoji">🌐</div>
+  <div id="launch-name">Loading</div>
+  <div id="launch-tag">Opening project</div>
+  <div id="launch-dots"><span></span><span></span><span></span></div>
+</div>
 
 <!-- HEADER -->
 <header>
@@ -619,12 +764,12 @@ footer {
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-left">© 2026 Shaurya Bengani — All works</div>
+  <div class="footer-left">© 2025 Shaurya Bengani — All works</div>
   <div class="footer-right">Made with intent.</div>
 </footer>
 
 <script>
-// Cursor tracking
+// ── CURSOR ──
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
 let mx = 0, my = 0, rx = 0, ry = 0;
@@ -643,6 +788,80 @@ function animateRing() {
   requestAnimationFrame(animateRing);
 }
 animateRing();
+
+// ── CLICK TRANSITION ──
+const blob = document.getElementById('ink-blob');
+const label = document.getElementById('launch-label');
+const labelEmoji = document.getElementById('launch-emoji');
+const labelName = document.getElementById('launch-name');
+const labelTag = document.getElementById('launch-tag');
+
+// Card metadata
+const cardMeta = {
+  personal: { emoji: '🌐', name: 'Shaurya.io',        tag: 'Personal site'   },
+  rcb:      { emoji: '🏏', name: 'RCB.io',            tag: 'Fan project'     },
+  game1:    { emoji: '⚔️', name: 'Super Tic Tac Toe', tag: 'Strategy game'   },
+  game2:    { emoji: '♟️', name: '4D Chess',           tag: 'Mind-bending game'},
+  story:    { emoji: '📖', name: 'The Exam Story',     tag: 'Interactive story'}
+};
+
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('click', function(e) {
+    e.preventDefault();
+    const url = this.getAttribute('href');
+    const theme = this.getAttribute('data-theme');
+    const meta = cardMeta[theme] || { emoji: '🌐', name: 'Opening...', tag: 'Just a moment' };
+
+    // 1. Card flash
+    this.classList.add('clicked');
+
+    // 2. Ripple rings from click point
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple-ring';
+        ripple.style.left = e.clientX + 'px';
+        ripple.style.top = e.clientY + 'px';
+        document.body.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 750);
+      }, i * 100);
+    }
+
+    // 3. Ink blob expands from click point
+    blob.style.left = e.clientX + 'px';
+    blob.style.top = e.clientY + 'px';
+    blob.classList.remove('expanding', 'collapsing');
+    void blob.offsetWidth; // reflow
+    blob.classList.add('expanding');
+
+    // 4. Show label mid-expansion
+    labelEmoji.textContent = meta.emoji;
+    labelName.textContent = meta.name;
+    labelTag.textContent = meta.tag;
+    label.classList.remove('visible');
+    void label.offsetWidth;
+    label.classList.add('visible');
+
+    // 5. Open link after the WOW moment
+    setTimeout(() => {
+      window.open(url, '_blank');
+
+      // 6. Collapse the ink back
+      label.classList.remove('visible');
+      blob.classList.remove('expanding');
+      void blob.offsetWidth;
+      blob.classList.add('collapsing');
+
+      setTimeout(() => {
+        blob.classList.remove('collapsing');
+        blob.style.width = '0';
+        blob.style.height = '0';
+        card.classList.remove('clicked');
+      }, 450);
+
+    }, 900);
+  });
+});
 </script>
 </body>
 </html>
