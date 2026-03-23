@@ -619,7 +619,7 @@ footer {
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-left">© 2025 Shaurya Bengani — All works</div>
+  <div class="footer-left">© 2026 Shaurya Bengani — All works</div>
   <div class="footer-right">Made with intent.</div>
 </footer>
 
